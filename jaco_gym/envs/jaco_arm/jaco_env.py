@@ -20,7 +20,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		# run the jaco-arm launch file
 		gazebo_env.GazeboEnv.__init__(self, "jaco_on_table_gazebo_controlled.launch")
 
-		self.pub = rospy.Publisher('/mavros/rc/override', OverrideRCIn, queue_size=10)
+		# self.pub = rospy.Publisher('/mavros/rc/override', OverrideRCIn, queue_size=10)
 
 		# gym init settings
 		#### THIS WILL NEED TO BE CHANGED TO A DIFFERENT SPACE!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -65,4 +65,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		return [seed]
 
 if __name__ == '__main__':
-	t = JacoEnv()
+	try:
+		t = JacoEnv()
+	except KeyboardInterrupt as e:
+		t._close()

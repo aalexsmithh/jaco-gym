@@ -13,3 +13,14 @@ This package has a number of dependencies, and the setup is non-trivial
 	 - Gazebo 8
  - ROS Kinetic
  - [jaco-arm-pkgs](https://github.com/JenniferBuehler/jaco-arm-pkgs)
+
+
+ To look at 
+  - https://github.com/pat-coady/trpo/blob/master/notebooks/ant.ipynb
+  - https://github.com/wojzaremba/trpo/blob/master/main.py
+  - https://github.com/pat-coady/trpo/blob/master/src/train.py
+  - https://learningai.io/projects/2017/07/28/ai-gym-workout.html
+
+Sources
+-------
+ - Extending the OpenAI Gym for robotics: a toolkit for reinforcement learning using ROS and Gazebo [1608.05742](https://arxiv.org/abs/1608.05742)
