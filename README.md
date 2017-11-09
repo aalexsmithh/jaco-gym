@@ -1,7 +1,7 @@
 jaco-gym
 ========
 
-This is a WIP packapge that will allow the Jaco arm Gazebo simulation to be incorporated into OpenAI Gym.
+This is a WIP package that will allow the Jaco arm Gazebo simulation to be incorporated into OpenAI Gym.
 
 Requirements
 -----------

@@ -9,6 +9,6 @@ logger = logging.getLogger(__name__)
 # Turtlebot envs
 register(
     id='JacoArm-v0',
-    entry_point='jaco-gym.envs.jaco-arm:JacoEnv',
+    entry_point='jaco_gym.envs.jaco_arm:JacoEnv',
     # More arguments here
 )

@@ -9,7 +9,7 @@ import numpy as np
 from gym import error, spaces, utils
 from gym.utils import seeding
 
-from gym_gazebo.envs import gazebo_env
+from jaco_gym.envs import gazebo_env
 
 from sensor_msgs.msg import Image
 
@@ -18,7 +18,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 
 	def __init__(self):
 		# run the jaco-arm launch file
-		gazebo_env.GazeboEnv.__init__(self, <jaco-arm.launch>)
+		gazebo_env.GazeboEnv.__init__(self, "jaco_on_table_gazebo_controlled.launch")
 
 		self.pub = rospy.Publisher('/mavros/rc/override', OverrideRCIn, queue_size=10)
 
@@ -63,3 +63,6 @@ class JacoEnv(gazebo_env.GazeboEnv):
 	def _seed(self, seed=None):
 		self.np_random, seed = seeding.np_random(seed)
 		return [seed]
+
+if __name__ == '__main__':
+	t = JacoEnv()
