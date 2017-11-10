@@ -1,0 +1,15 @@
+# the ball and cup xacro file (necessary??)
+<arg name="robot_xacro" default="$(find jaco_on_table)/urdf/jaco_on_table_robot_gazebo_ctrl.urdf.xacro"/>
+
+<arg name="gazebo_world_file" default="worlds/empty.world"/>
+
+# set to true if the gazebo_state_plugin/gazebo_object_info world plugin should be loaded
+<arg name="load_gazebo_objects_plugin" default="true"/>
+
+# set to true if the gazebo_state_plugin/gazebo_map_publisher world plugin should be loaded
+<arg name="load_gazebo_map_plugin" default="false"/>
+
+# load the world plugin loader (in package gazebo_world_plugin_loader) which launches several
+# world plugins according to the specification in the ROS parameters. Note that you will
+# have to load those parameters on the ROS parameter server BEFORE gazebo gets launched. 
+<arg name="load_world_plugins" default="true"/>
