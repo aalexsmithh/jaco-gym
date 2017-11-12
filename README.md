@@ -19,6 +19,7 @@ This package has a number of dependencies, and the setup is non-trivial
 	 - Gazebo 8
  - ROS Kinetic
  - [jaco-arm-pkgs](https://github.com/JenniferBuehler/jaco-arm-pkgs)
+ - tensorflow 
 
 Sources
 -------
