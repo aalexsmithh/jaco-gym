@@ -5,7 +5,7 @@
 	<arg name="y" value="0"/>
 	<arg name="z" value="0"/>
 
-	<!-- # start gazebo with empty world
+	# start gazebo with empty world
 	<arg name="gazebo_world_file" default="worlds/empty.world"/>
 	<arg name="extra_gazebo_args" default=""/>
 	<include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -14,17 +14,17 @@
 		<arg name="verbose" value="false"/>
 		<arg name="use_sim_time" value="true"/>
 		<arg name="gui" value="true"/>
-		<arg name="headless" value="false"/>
+		<arg name="headless" value="true"/>
 		<arg name="debug" value="false"/>
 		<arg name="extra_gazebo_args" value="$(arg extra_gazebo_args)"/>	
-	</include> -->
+	</include>
 
 	# start the jaco arm in gazebo
 
 	# with gui publisher
-	<include file="$(find jaco_on_table)/launch/jaco_on_table_gazebo_controlled.launch">
+	<!-- <include file="$(find jaco_on_table)/launch/jaco_on_table_gazebo_controlled.launch">
 		<arg name="load_joint_state_publisher" value="true"/>
-	</include>
+	</include> -->
 
 	#with programmatic publisher
 	<!-- <include file="$(find jaco_on_table)/launch/jaco_on_table_gazebo_controlled.launch">
