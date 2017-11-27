@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="chain">
-	<xacro:property name="link_length" value="0.1" />
-	<xacro:property name="link_num" value="4"/>
+	<xacro:property name="link_length" value="0.025" />
+	<xacro:property name="link_yz" value="0.001"/>
+	<xacro:property name="link_num" value="20"/>
+	<xacro:property name="chain_link_mass" value="0.0001"/>
 
 	<xacro:macro name="chain_link" params="name X Y Z mass">
 		<link name="${name}">
@@ -27,50 +29,51 @@
 	</xacro:macro>
 
 	<xacro:macro name="link_ball_joint" params="name X parent">
-		<joint name="${name}_joint" type="continuous">
+		<joint name="${name}_x" type="continuous">
 			<origin xyz="${X} 0 0" rpy="0 0 0"/>
 			<parent link="${parent}"/>
-			<child link="${name}_junta1"/>
-			<axis xyz="0 1 0" />
-		</joint>
-
-		<link name="${name}_junta1">
-			<inertial>
-			<mass value="0.001" />
-			<inertia ixx="5.8083e-4" ixy="0" ixz="0" iyy="3.0833e-5" iyz="0" izz="5.9083e-4" />
-			</inertial>
-		</link>
-
-		<joint name="${name}_joint2" type="continuous">
-			<parent link="${name}_junta1"/>
-			<child link="${name}_junta2"/>
-			<axis xyz="0 0 1" />
-		</joint>
-
-		<link name="${name}_junta2">
-			<inertial>
-			<mass value="0.001" />
-			<inertia ixx="5.8083e-4" ixy="0" ixz="0" iyy="3.0833e-5" iyz="0" izz="5.9083e-4" />
-			</inertial>  
-		</link>
-
-		<joint name="${name}_joint3" type="continuous">
-			<parent link="${name}_junta1"/>
-			<child link="${name}_junta3"/>
+			<child link="${name}_phi"/>
 			<axis xyz="1 0 0" />
 		</joint>
 
-		<link name="${name}_junta3">
+		<link name="${name}_phi">
 			<inertial>
-			<mass value="0.001" />
-			<inertia ixx="5.8083e-4" ixy="0" ixz="0" iyy="3.0833e-5" iyz="0" izz="5.9083e-4" />
+			<mass value="0.0001" />
+			<inertia ixx="5.8083e-5" ixy="0" ixz="0" iyy="3.0833e-6" iyz="0" izz="5.9083e-5" />
+			</inertial>
+		</link>
+
+		<joint name="${name}_y" type="continuous">
+			<parent link="${name}_phi"/>
+			<child link="${name}_psi"/>
+			<axis xyz="0 1 0" />
+		</joint>
+
+		<link name="${name}_psi">
+			<inertial>
+			<mass value="0.0001" />
+			<inertia ixx="5.8083e-5" ixy="0" ixz="0" iyy="3.0833e-6" iyz="0" izz="5.9083e-5" />
 			</inertial>  
 		</link>
 
-		<joint name="${name}_jointfixed" type="fixed">  
+		<joint name="${name}_z" type="continuous">
+			<parent link="${name}_psi"/>
+			<child link="${name}"/>
+			<axis xyz="0 0 1" />
+		</joint>
+
+		<!-- <link name="${name}_junta3">
+			<inertial>
+			<mass value="0.0001" />
+			<inertia ixx="5.8083e-5" ixy="0" ixz="0" iyy="3.0833e-6" iyz="0" izz="5.9083e-5" />
+			</inertial>  
+		</link>
+
+		<joint name="${name}_jointfixed" type="continuous">  
 			<parent link="${name}_junta3"/>
 			<child link="${name}"/>
-		</joint>
+			<axis xys="0 1 0"/>
+		</joint> -->
 	</xacro:macro>
 
 	<material name="Grey">
@@ -89,7 +92,7 @@
 	</xacro:macro>
 
 	<xacro:macro name="chain_loop" params="i">
-		<xacro:chain_link name="${link_num - i + 1}" X="${link_length}" Y="0.01" Z="0.01" mass="0.001"/>
+		<xacro:chain_link name="${link_num - i + 1}" X="${link_length}" Y="${link_yz}" Z="${link_yz}" mass="${chain_link_mass}"/>
 		<xacro:link_ball_joint name="${link_num - i + 1}" X="${link_length}" parent="${link_num - i}"/>
 		<xacro:link_gazebo name="${link_num - i + 1}"/> 
 
@@ -101,49 +104,90 @@
 	
 	<xacro:macro name="ball" params="d mass">
 		<link name='ball'>
-		<inertial>
-			<origin xyz="${d/2} 0 0 " />
-			<mass value="${mass}"/>
-			<inertia ixx="${mass* (d/2)**2 * (2/5)}" ixy="0.00" ixz="0.00" iyy="${mass* (d/2)**2 * (2/5)}" iyz="0.00" izz="${mass* (d/2)**2 * (2/5)}"/>
-		</inertial>
+			<inertial>
+				<origin xyz="${d} 0 0 " />
+				<mass value="${mass}"/>
+				<inertia ixx="${mass* (d/2)**2 * (2/5)}" ixy="0.00" ixz="0.00" iyy="${mass* (d/2)**2 * (2/5)}" iyz="0.00" izz="${mass* (d/2)**2 * (2/5)}"/>
+			</inertial>
 
-		<collision name='collision'>
-			<origin xyz="${d/2} 0 0 "/>
-			<geometry>
-				<sphere radius="${d}"/>
-			</geometry>
-			<max_contacts>10</max_contacts>
-			<surface>
-				<contact>
-					<ode/>
-				</contact>
-				<bounce/>
-				<friction>
-					<torsional>
+			<collision name='collision'>
+				<origin xyz="${d} 0 0 "/>
+				<geometry>
+					<sphere radius="${d}"/>
+				</geometry>
+				<max_contacts>10</max_contacts>
+				<surface>
+					<contact>
 						<ode/>
-					</torsional>
-					<ode/>
-				</friction>
-			</surface>
-		</collision>
+					</contact>
+					<bounce/>
+					<friction>
+						<torsional>
+							<ode/>
+						</torsional>
+						<ode/>
+					</friction>
+				</surface>
+			</collision>
 
-		<visual name='visual'>
-			<origin xyz="${d/2} 0 0 " />
-			<geometry>
-				<sphere radius="${d}"/>
-			</geometry>
-		</visual>
+			<visual name='visual'>
+				<origin xyz="${d} 0 0 " />
+				<geometry>
+					<sphere radius="${d}"/>
+				</geometry>
+			</visual>
 
-		<self_collide>0</self_collide>
-		<enable_wind>0</enable_wind>
-		<kinematic>0</kinematic>
-	  </link>
+			<self_collide>0</self_collide>
+			<enable_wind>0</enable_wind>
+			<kinematic>0</kinematic>
+	  	</link>
+	</xacro:macro>
+
+	<xacro:macro name="cup" params="mass">
+		<link name="cup">
+			<inertial>
+				<origin xyz="$0 0 0" />
+				<mass value="${mass}"/>
+				<inertia ixx="${mass * 0.282601}" ixy="${mass * 0.0056}" ixz="${mass * -0.000002}" iyy="${mass * 0.147524}" iyz="${mass * -0.007428}" izz="${mass * 0.276385}"/>
+			</inertial>
+
+			<collision name='collision'>
+				<origin xyz="0 0 0"/>
+				<geometry>
+					<mesh filename="file://../meshes/cup.dae"/>
+				</geometry>
+				<max_contacts>10</max_contacts>
+				<surface>
+					<contact>
+						<ode/>
+					</contact>
+					<bounce/>
+					<friction>
+						<torsional>
+							<ode/>
+						</torsional>
+						<ode/>
+					</friction>
+				</surface>
+			</collision>
+
+			<visual name='visual'>
+				<origin xyz="0 0 0" />
+				<geometry>
+					<mesh filename="file://../meshes/cup.dae"/>
+				</geometry>
+			</visual>
+
+			<self_collide>0</self_collide>
+			<enable_wind>0</enable_wind>
+			<kinematic>0</kinematic>
+	  	</link>
 	</xacro:macro>
 
 	<!-- build chain links with base at the bottom usign the loop. build ball, attach to chain -->
 	<link name="chain_base"/>
 
-	<xacro:chain_link name="0" X="${link_length}" Y="0.01" Z="0.01" mass="0.001"/>
+	<xacro:chain_link name="0" X="${link_length}" Y="${link_yz}" Z="${link_yz}" mass="0.001"/>
 		<joint name="0" type="fixed">
 			<origin xyz="0 0 0" rpy="0 0 0" />
 			<parent link="chain_base"/>
@@ -153,8 +197,12 @@
 
 	<xacro:chain_loop i="${link_num}" />
 
-	<xacro:ball d="0.1" mass="1"/>
+	<!-- <xacro:ball d="0.05" mass="1"/>
 	<xacro:link_gazebo name="ball"/>
-	<xacro:link_ball_joint name="ball" X="0" parent="${link_num}"/>
+	<xacro:link_ball_joint name="ball" X="${link_length}" parent="${link_num}"/> -->
+
+	<xacro:cup mass="1"/>
+	<xacro:link_gazebo name="cup"/>
+	<xacro:link_ball_joint name="cup" X="${link_length}" parent="${link_num}"/>
 
 </robot>

@@ -14,7 +14,7 @@
 		<arg name="verbose" value="false"/>
 		<arg name="use_sim_time" value="true"/>
 		<arg name="gui" value="true"/>
-		<arg name="headless" value="true"/>
+		<arg name="headless" value="false"/>
 		<arg name="debug" value="false"/>
 		<arg name="extra_gazebo_args" value="$(arg extra_gazebo_args)"/>	
 	</include>
