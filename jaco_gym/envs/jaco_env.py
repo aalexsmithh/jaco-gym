@@ -18,7 +18,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 
 	def __init__(self):
 		# run the jaco-arm launch file
-		gazebo_env.GazeboEnv.__init__(self, "ball_and_cup.launch")
+		gazebo_env.GazeboEnv.__init__(self, "JacoArmWithBallAndCup_v0.launch")
 
 		# self.pub = rospy.Publisher('/mavros/rc/override', OverrideRCIn, queue_size=10)
 

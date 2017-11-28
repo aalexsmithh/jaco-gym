@@ -32,12 +32,12 @@ class GazeboEnv(gym.Env):
 			raise IOError("File "+fullpath+" does not exist")
 
 
-		uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-		roslaunch.configure_logging(uuid)
-		launch = roslaunch.parent.ROSLaunchParent(uuid, [fullpath])
+		# uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+		# roslaunch.configure_logging(uuid)
+		# launch = roslaunch.parent.ROSLaunchParent(uuid, [fullpath])
 
-		launch.start()
-		# subprocess.Popen(["roslaunch",fullpath])
+		# launch.start()
+		subprocess.Popen(["roslaunch",fullpath])
 		print ("Gazebo launched!")
 
 		self.gzclient_pid = 0

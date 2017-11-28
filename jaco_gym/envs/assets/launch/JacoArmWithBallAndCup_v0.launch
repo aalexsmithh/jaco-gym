@@ -1,0 +1,37 @@
+<launch>
+	# start the jaco arm in gazebo
+	# with gui publisher
+	<!-- <include file="$(find jaco_on_table)/launch/jaco_on_table_gazebo_controlled.launch">
+		<arg name="load_joint_state_publisher" value="true"/>
+	</include> -->
+
+	# with programmatic publisher
+	<!-- <include file="$(find jaco_on_table)/launch/jaco_on_table_gazebo_controlled.launch">
+		<arg name="load_ros_controllers" value="true"/>
+		<arg name="load_velocity_controller" value="false"/>
+	</include> -->
+
+	# OR
+
+	# start gazebo with empty world
+	<arg name="gazebo_world_file" default="worlds/empty.world"/>
+	<arg name="extra_gazebo_args" default=""/>
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">
+		<arg name="world_name" value="$(arg gazebo_world_file)"/> 
+		<arg name="paused" value="false"/>
+		<arg name="verbose" value="false"/>
+		<arg name="use_sim_time" value="true"/>
+		<arg name="gui" value="true"/>
+		<arg name="headless" value="false"/>
+		<arg name="debug" value="false"/>
+		<arg name="extra_gazebo_args" value="$(arg extra_gazebo_args)"/>	
+	</include>
+
+	# start the cup and ball in gazebo
+	<include file="$(find cup_and_ball)/launch/ball_and_cup.launch">
+		<arg name="x" value="0"/>
+		<arg name="y" value="0"/>
+		<arg name="z" value="0"/>
+	</include>
+
+</launch>
