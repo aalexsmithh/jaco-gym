@@ -5,6 +5,7 @@ import roslaunch
 import subprocess
 import time
 import numpy as np
+import math
 
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -14,6 +15,7 @@ from jaco_gym.envs import gazebo_env
 from sensor_msgs.msg import Image, JointState
 from control_msgs.msg import JointControllerState
 from std_msgs.msg import Float64
+from gazebo_msgs.msg import LinkStates
 
 from std_srvs.srv import Empty
 
@@ -40,36 +42,20 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.pubs = [self.joint_0_pub, self.joint_1_pub, self.joint_2_pub, self.joint_3_pub, self.joint_4_pub, self.joint_5_pub, self.finger_0_pub, self.finger_2_pub, self.finger_4_pub, self.joint_0_pub]
 
 		# state space
-		self.state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+		self.joint_state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+		self.link_states = None
 		self.state_sub = rospy.Subscriber('/jaco/joint_states', JointState, self.state_cb)
+		self.gz_states = rospy.Subscriber('/gazebo/link_states', LinkStates, self.gz_state_cb)
 
 		rospy.init_node('gym_gazebo')
-		# self.joint_0_sub = rospy.Subscriber('/jaco/jaco_arm_0_joint_position_controller/state', JointControllerState, self.joint_0_cb)
-		# self.joint_1_sub = rospy.Subscriber('/jaco/jaco_arm_1_joint_position_controller/state', JointControllerState, self.joint_1_cb)
-		# self.joint_2_sub = rospy.Subscriber('/jaco/jaco_arm_2_joint_position_controller/state', JointControllerState, self.joint_2_cb)
-		# self.joint_3_sub = rospy.Subscriber('/jaco/jaco_arm_3_joint_position_controller/state', JointControllerState, self.joint_3_cb)
-		# self.joint_4_sub = rospy.Subscriber('/jaco/jaco_arm_4_joint_position_controller/state', JointControllerState, self.joint_4_cb)
-		# self.joint_5_sub = rospy.Subscriber('/jaco/jaco_arm_5_joint_position_controller/state', JointControllerState, self.joint_5_cb) 
-
-		# self.finger_0_sub = rospy.Subscriber('/jaco/jaco_finger_joint_0_position_controller/state', JointControllerState, self.finger_0_cb)
-		# self.finger_2_sub = rospy.Subscriber('/jaco/jaco_finger_joint_2_position_controller/state', JointControllerState, self.finger_2_cb)
-		# self.finger_4_sub = rospy.Subscriber('/jaco/jaco_finger_joint_4_position_controller/state', JointControllerState, self.finger_4_cb)
-
-		# self.joint_0_state = 0.0
-		# self.joint_1_state = 0.0
-		# self.joint_2_state = 0.0
-		# self.joint_3_state = 0.0
-		# self.joint_4_state = 0.0
-		# self.joint_5_state = 0.0
-		# self.finger_0_state = 0.0
-		# self.finger_2_state = 0.0
-		# self.finger_4_state = 0.0
-
 
 		# # gym init settings
 		# #### THIS WILL NEED TO BE CHANGED TO A DIFFERENT SPACE!!!!!!!!!!!!!!!!!!!!!!!!!
-		# self.action_space = spaces.Discrete(3) #F,L,R
-		# self.reward_range = (-np.inf, np.inf)
+		self.max_joint_pos = math.pi
+		# self.action_space = spaces.Box(low=-self.max_joint_pos, high=self.max_joint_pos) #F,L,R
+		# self.reward_range = (0, np.inf)
+		self.goal = None
+		self.reward = 0.0
 
 		# # gazebo init commands
 		self.gazebo_step_size = long(200)
@@ -93,6 +79,8 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		for i,pub in enumerate(self.pubs):
 			pub.publish(Float64(action[i]))
 
+		self.calc_reward()
+
 		######### END OF WORK
 		rospy.wait_for_service('/gazebo/pause_physics')
 		try:
@@ -100,20 +88,41 @@ class JacoEnv(gazebo_env.GazeboEnv):
 			self.pause()
 		except (rospy.ServiceException) as e:
 			print ("/gazebo/pause_physics service call failed")
-		return self.state
+
+		### check if the task is done
+		if self.reward < 1e-3:
+			done = True
+		#check self collision physics??
+
+		return self.joint_state, self.reward, done, {}
 
 	def _reset(self):
 		# Resets the state of the environment and returns an initial observation.
-		rospy.wait_for_service('/gazebo/reset_world')
+		rospy.wait_for_service('/gazebo/reset_simulation')
 		try:
 			#reset_proxy.call()
 			self.reset_proxy()
 		except (rospy.ServiceException) as e:
-			print ("/gazebo/reset_world service call failed")
+			print ("/gazebo/reset_simulation service call failed")
 
-		# THIS MUST BE DEFINED. IMAGE SPACE? OR DISCRITIZED ANGLES
-		state = None
-		return state
+		# Unpause simulation to make observation
+		rospy.wait_for_service('/gazebo/unpause_physics')
+		try:
+			#resp_pause = pause.call()
+			self.unpause()
+		except (rospy.ServiceException) as e:
+			print ("/gazebo/unpause_physics service call failed")
+
+		########## NECESSARY TO RESET THE self.joint_states VARIABLE
+
+		rospy.wait_for_service('/gazebo/pause_physics')
+		try:
+			#resp_pause = pause.call()
+			self.pause()
+		except (rospy.ServiceException) as e:
+			print ("/gazebo/pause_physics service call failed")
+
+		return self.joint_state
 
 	def _pause(self, msg):
 		programPause = raw_input(str(msg))
@@ -127,12 +136,22 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		return [seed]
 
 	def state_cb(self, msg):
-		self.state = msg.position
+		self.joint_state = msg.position
 		# for i, joint in enumerate(msg.position):
 		# 	self.state[i] = joint
 
-	def calc_reward(self, gz_states):
-		pass
+	def gz_state_cb(self, msg):
+		i = msg.name.index('jaco_on_table::jaco_8_finger_pinkie')
+		self.link_states = [msg.pose[i].position.x, msg.pose[i].position.y, msg.pose[i].position.z]
+
+	def calc_reward(self):
+		if self.goal is not None:
+			# MSE of link_state from goal
+			rwrd = [(x-y)**2 for x,y in zip(self.goal, self.link_states)]
+			self.reward = sum(rwrd)/3
+
+	def set_goal(self, goal):
+		self.goal = goal
 
 if __name__ == '__main__':
 	try:

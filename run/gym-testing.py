@@ -12,14 +12,14 @@ if __name__ == '__main__':
 	print "launching the world..."
 	raw_input("hit enter when gazebo is loaded...")
 
-
+	env.set_goal([0.167840578046, 0.297489331432, 0.857454500127])
 
 
 	total_episodes = 100
 	for x in range(total_episodes):
 		action = [1,1,1,1,1,1,1,1,1,1]
-		state = env.step(action)
-		print state
+		state, reward = env.step(action)
+		print state, reward
 
 
 	# env.close()

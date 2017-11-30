@@ -31,7 +31,7 @@
 	<!-- <include file="$(find cup_and_ball)/launch/ball_and_cup.launch">
 		<arg name="x" value="0"/>
 		<arg name="y" value="0"/>
-		<arg name="z" value="0"/>
+		<arg name="z" value="3"/>
 	</include> -->
 
 </launch>
