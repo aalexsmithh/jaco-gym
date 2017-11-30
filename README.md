@@ -6,8 +6,8 @@ This is a WIP package that will allow the Jaco arm Gazebo simulation to be incor
 Running
 -------
 ```
-$ roslaunch jaco_on_table jaco_on_table_gazebo_controlled.launch load_ros_controllers:=true load_velocity_controller:=false
-$ python publisher.py
+$ cd run
+$ python gym-testing.py
 ```
 
 Requirements
@@ -20,6 +20,7 @@ This package has a number of dependencies, and the setup is non-trivial
  - ROS Kinetic
  - [jaco-arm-pkgs](https://github.com/JenniferBuehler/jaco-arm-pkgs)
  - tensorflow 
+ - [cup_and_ball](https://github.com/aalexsmithh/cup_and_ball) 
 
 Sources
 -------
