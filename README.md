@@ -19,7 +19,7 @@ This package has a number of dependencies, and the setup is non-trivial
 	 - Gazebo 8
  - ROS Kinetic
  - [jaco-arm-pkgs](https://github.com/JenniferBuehler/jaco-arm-pkgs)
- - tensorflow 
+ - [tensorforce](https://github.com/reinforceio/tensorforce)
  - [cup_and_ball](https://github.com/aalexsmithh/cup_and_ball) 
 
 Sources
