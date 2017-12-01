@@ -50,11 +50,12 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		rospy.init_node('gym_gazebo')
 
 		# # gym init settings
-		# #### THIS WILL NEED TO BE CHANGED TO A DIFFERENT SPACE!!!!!!!!!!!!!!!!!!!!!!!!!
-		self.max_joint_pos = math.pi
-		# self.action_space = spaces.Box(low=-self.max_joint_pos, high=self.max_joint_pos) #F,L,R
-		# self.reward_range = (0, np.inf)
-		self.goal = None
+		self.max_joint_pos = np.asarray([math.pi] * 9)
+		self.min_joint_pos = np.asarray([-math.pi] * 9)
+		self.action_space = spaces.Box(low=self.min_joint_pos, high=self.max_joint_pos) #-pi to pi for each joint
+		self.observation_space = spaces.Box(low=self.min_joint_pos, high=self.max_joint_pos)
+		self.reward_range = (0, 1000)
+		self.goal = [0.167840578046, 0.297489331432, 0.857454500127]
 		self.reward = 0.0
 
 		# # gazebo init commands
@@ -65,15 +66,11 @@ class JacoEnv(gazebo_env.GazeboEnv):
 
 
 	def _step(self, action):
-		#control the robot based on the action var
-		rospy.wait_for_service('/gazebo/unpause_physics')
-		try:
-			self.unpause()
-		except (rospy.ServiceException) as e:
-			print ("/gazebo/unpause_physics service call failed")
-
-		for i, joint in enumerate(self.pubs):
-			joint.publish(Float64(action[i]))
+		# rospy.wait_for_service('/gazebo/unpause_physics')
+		# try:
+		# 	self.unpause()
+		# except (rospy.ServiceException) as e:
+		# 	print ("/gazebo/unpause_physics service call failed")
 		######### DO WORK
 
 		for i,pub in enumerate(self.pubs):
@@ -82,15 +79,16 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.calc_reward()
 
 		######### END OF WORK
-		rospy.wait_for_service('/gazebo/pause_physics')
-		try:
-			#resp_pause = pause.call()
-			self.pause()
-		except (rospy.ServiceException) as e:
-			print ("/gazebo/pause_physics service call failed")
+		# rospy.wait_for_service('/gazebo/pause_physics')
+		# try:
+		# 	#resp_pause = pause.call()
+		# 	self.pause()
+		# except (rospy.ServiceException) as e:
+		# 	print ("/gazebo/pause_physics service call failed")
 
 		### check if the task is done
-		if self.reward < 1e-3:
+		done = False
+		if self.reward == 1000:
 			done = True
 		#check self collision physics??
 
@@ -104,23 +102,6 @@ class JacoEnv(gazebo_env.GazeboEnv):
 			self.reset_proxy()
 		except (rospy.ServiceException) as e:
 			print ("/gazebo/reset_simulation service call failed")
-
-		# Unpause simulation to make observation
-		rospy.wait_for_service('/gazebo/unpause_physics')
-		try:
-			#resp_pause = pause.call()
-			self.unpause()
-		except (rospy.ServiceException) as e:
-			print ("/gazebo/unpause_physics service call failed")
-
-		########## NECESSARY TO RESET THE self.joint_states VARIABLE
-
-		rospy.wait_for_service('/gazebo/pause_physics')
-		try:
-			#resp_pause = pause.call()
-			self.pause()
-		except (rospy.ServiceException) as e:
-			print ("/gazebo/pause_physics service call failed")
 
 		return self.joint_state
 
@@ -137,8 +118,6 @@ class JacoEnv(gazebo_env.GazeboEnv):
 
 	def state_cb(self, msg):
 		self.joint_state = msg.position
-		# for i, joint in enumerate(msg.position):
-		# 	self.state[i] = joint
 
 	def gz_state_cb(self, msg):
 		i = msg.name.index('jaco_on_table::jaco_8_finger_pinkie')
@@ -148,7 +127,9 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		if self.goal is not None:
 			# MSE of link_state from goal
 			rwrd = [(x-y)**2 for x,y in zip(self.goal, self.link_states)]
-			self.reward = sum(rwrd)/3
+			self.reward = 1/(sum(rwrd)/3)
+			if self.reward > 1000:
+				self.reward = 1000
 
 	def set_goal(self, goal):
 		self.goal = goal
