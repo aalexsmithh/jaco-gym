@@ -10,7 +10,7 @@ import json
 from tensorforce.agents import Agent
 from tensorforce.execution import Runner
 from tensorforce.contrib.openai_gym import OpenAIGym
-from tensorforce.agents.dqn_agent import DQNAgent
+from tensorforce.agents.ppo_agent import PPOAgent
 
 
 network_spec = [
@@ -23,20 +23,28 @@ def main():
 	#tensorforce
 	env = OpenAIGym('JacoArm-v0')
 
-	agent = agent = DQNAgent(
-    	states_spec=env.states,
-    	actions_spec=env.actions,
-    	network_spec=network_spec,
+	agent = agent = PPOAgent(
+		states_spec=env.states,
+		actions_spec=env.actions,
+		network_spec=network_spec,
+		batch_size=1000,
+		step_optimizer=dict(
+			type='adam',
+			learning_rate=1e-4
+		)
+	)
 
 	runner = Runner(agent=agent, environment=env)
 
 	raw_input("hit enter when gazebo is loaded...")
-	runner.run(episodes=100, max_episode_timesteps=100)
+	runner.run(episodes=1000, max_episode_timesteps=100, episode_finished=episode_finished)
 
-	# #old-fashioned way
+	#old-fashioned way
 	# env = gym.make('JacoArm-v0')
 	# print "launching the world..."
 	# #gz loaing issues, let user start the learning
+	# raw_input("hit enter when gazebo is loaded...")
+	# env.set_physics_update(0.0001, 10000)
 	# raw_input("hit enter when gazebo is loaded...")
 
 	# # env.set_goal([0.167840578046, 0.297489331432, 0.857454500127])
@@ -58,6 +66,9 @@ def main():
 
 	env.close()
 
+def episode_finished(r):
+	print("Finished episode {ep} after {ts} timesteps (reward: {reward})".format(ep=r.episode, ts=r.episode_timestep, reward=r.episode_rewards[-1]))
+	return True
 
 if __name__ == '__main__':
 	main()
