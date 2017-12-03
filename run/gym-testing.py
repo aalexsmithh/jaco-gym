@@ -5,7 +5,7 @@ import time
 import numpy
 import random
 import time
-import json
+import csv
 
 from tensorforce.agents import Agent
 from tensorforce.execution import Runner
@@ -18,6 +18,7 @@ network_spec = [
 	dict(type='dense', size=32, activation='relu')
 ]
 
+train_data = []
 
 def main():
 	#tensorforce
@@ -37,7 +38,7 @@ def main():
 	runner = Runner(agent=agent, environment=env)
 
 	raw_input("hit enter when gazebo is loaded...")
-	runner.run(episodes=1000, max_episode_timesteps=100, episode_finished=episode_finished)
+	runner.run(episodes=10, max_episode_timesteps=100, episode_finished=episode_finished)
 
 	#old-fashioned way
 	# env = gym.make('JacoArm-v0')
@@ -63,12 +64,20 @@ def main():
 	# 	time.sleep(0.2)
 	# 	x += 1
 
-
+	write_to_csv(train_data, 'test.csv')
 	env.close()
 
 def episode_finished(r):
 	print("Finished episode {ep} after {ts} timesteps (reward: {reward})".format(ep=r.episode, ts=r.episode_timestep, reward=r.episode_rewards[-1]))
+	train_data.append([r.episode_timestep, r.episode_rewards[-1]])
 	return True
+
+def write_to_csv(data, fn):
+	with open(fn, 'wb') as f:
+		w = csv.writer(f, dialect='excel')
+		for row in data:
+			w.writerow(row)
+	f.close()
 
 if __name__ == '__main__':
 	main()
