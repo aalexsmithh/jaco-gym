@@ -65,6 +65,8 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.pause = rospy.ServiceProxy('/gazebo/pause_physics', Empty)
 		self.reset_proxy = rospy.ServiceProxy('/gazebo/reset_simulation', Empty)
 
+		# self.hold_init_robot_pos([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.5])
+
 
 	def _step(self, action):
 		# rospy.wait_for_service('/gazebo/unpause_physics')
@@ -109,6 +111,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		try:
 			#reset_proxy.call()
 			self.reset_proxy()
+			self.hold_init_robot_pos([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
 		except (rospy.ServiceException) as e:
 			print ("/gazebo/reset_simulation service call failed")
 
@@ -152,6 +155,23 @@ class JacoEnv(gazebo_env.GazeboEnv):
 			return True
 		else:
 			return False
+
+	def hold_init_robot_pos(self, action):
+		# rospy.wait_for_service('/gazebo/unpause_physics')
+		# try:
+		# 	self.unpause()
+		# except (rospy.ServiceException) as e:
+		# 	print ("/gazebo/unpause_physics service call failed")
+		
+		for i,pub in enumerate(self.pubs):
+			pub.publish(Float64(action[i]))
+
+		# rospy.wait_for_service('/gazebo/pause_physics')
+		# try:
+		# 	self.pause()
+		# except (rospy.ServiceException) as e:
+		# 	print ("/gazebo/pause_physics service call failed")
+
 
 	def set_physics_update(self, max_dt, hz):
 		try:

@@ -27,11 +27,18 @@
 		<arg name="extra_gazebo_args" value="$(arg extra_gazebo_args)"/>	
 	</include> -->
 
+	<arg name="pi" value="3.1415926535"/>
+	<arg name="half_pi" value="1.57079632675"/>
+	<arg name="half_half_pi" value="0.78539816337"/>
+
 	# start the cup and ball in gazebo
-	<!-- <include file="$(find cup_and_ball)/launch/ball_and_cup.launch">
-		<arg name="x" value="0"/>
-		<arg name="y" value="0"/>
-		<arg name="z" value="3"/>
-	</include> -->
+	<include file="$(find cup_and_ball)/launch/ball_and_cup.launch">
+		<arg name="x" value="1.015"/>
+		<arg name="y" value="-0.35"/>
+		<arg name="z" value="0.95"/>
+		<arg name="roll" value="$(arg half_pi)"/>
+		<arg name="pitch" value="0"/>
+		<arg name="yaw" value="0"/>
+	</include>
 
 </launch>

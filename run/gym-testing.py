@@ -25,6 +25,7 @@ def main():
 	#tensorforce
 	env = OpenAIGym('JacoArm-v0')
 
+
 	agent = TRPOAgent(
 		states_spec=env.states,
 		actions_spec=env.actions,
@@ -46,7 +47,9 @@ def main():
 	runner = Runner(agent=agent, environment=env)
 
 	raw_input("hit enter when gazebo is loaded...")
-	runner.run(episodes=5000, max_episode_timesteps=100, episode_finished=episode_finished)
+	env.gym.unpause()
+	env.gym.hold_init_robot_pos([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
+	runner.run(episodes=50, max_episode_timesteps=100, episode_finished=episode_finished)
 
 	#old-fashioned way
 	# env = gym.make('JacoArm-v0')
