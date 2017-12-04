@@ -10,7 +10,8 @@ import csv
 from tensorforce.agents import Agent
 from tensorforce.execution import Runner
 from tensorforce.contrib.openai_gym import OpenAIGym
-from tensorforce.agents.ppo_agent import PPOAgent
+# from tensorforce.agents.ppo_agent import PPOAgent
+from tensorforce.agents.trpo_agent import TRPOAgent
 
 
 network_spec = [
@@ -24,21 +25,28 @@ def main():
 	#tensorforce
 	env = OpenAIGym('JacoArm-v0')
 
-	agent = agent = PPOAgent(
+	agent = TRPOAgent(
 		states_spec=env.states,
 		actions_spec=env.actions,
 		network_spec=network_spec,
-		batch_size=1000,
-		step_optimizer=dict(
-			type='adam',
-			learning_rate=1e-4
-		)
+		batch_size=512
 	)
+
+	# agent = PPOAgent(
+	# 	states_spec=env.states,
+	# 	actions_spec=env.actions,
+	# 	network_spec=network_spec,
+	# 	batch_size=512,
+	# 	step_optimizer=dict(
+	# 		type='adam',
+	# 		learning_rate=1e-4
+	# 	)
+	# )
 
 	runner = Runner(agent=agent, environment=env)
 
 	raw_input("hit enter when gazebo is loaded...")
-	runner.run(episodes=10, max_episode_timesteps=100, episode_finished=episode_finished)
+	runner.run(episodes=5000, max_episode_timesteps=100, episode_finished=episode_finished)
 
 	#old-fashioned way
 	# env = gym.make('JacoArm-v0')

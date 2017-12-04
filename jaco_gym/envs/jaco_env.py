@@ -55,7 +55,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.min_joint_pos = np.asarray([-math.pi] * 9)
 		self.action_space = spaces.Box(low=self.min_joint_pos, high=self.max_joint_pos) #-pi to pi for each joint
 		self.observation_space = spaces.Box(low=self.min_joint_pos, high=self.max_joint_pos)
-		self.reward_range = (0, 1000)
+		self.reward_range = (1000, 0)
 		self.goal = [1,1,1] #[0.167840578046, 0.297489331432, 0.857454500127]
 		self.reward = 0.0
 
@@ -63,7 +63,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.gazebo_step_size = long(200)
 		self.unpause = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
 		self.pause = rospy.ServiceProxy('/gazebo/pause_physics', Empty)
-		self.reset_proxy = rospy.ServiceProxy('/gazebo/reset_world', Empty)
+		self.reset_proxy = rospy.ServiceProxy('/gazebo/reset_simulation', Empty)
 
 
 	def _step(self, action):
