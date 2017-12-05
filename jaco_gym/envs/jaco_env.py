@@ -47,6 +47,8 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.joint_state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 		self.ball_state = [0.0, 0.0, 0.0]
 		self.cup_state = [0.0, 0.0, 0.0]
+		self.pinky_state = [0.0, 0.0, 0.0]
+		self.cup_quat = [0.0, 0.0, 0.0, 0.0]
 		self.world_state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 		self.link_states = None
 		self.state_sub = rospy.Subscriber('/jaco/joint_states', JointState, self.state_cb)
@@ -62,7 +64,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.max_obs_space = np.append(self.max_joint_pos, np.asarray([np.inf] * 6))
 		self.min_obs_space = np.append(self.min_joint_pos, np.asarray([-np.inf] * 6))
 		self.observation_space = spaces.Box(low=self.min_obs_space, high=self.max_obs_space)
-		self.reward_range = (np.inf, 0)
+		self.reward_range = (np.inf, -np.inf)
 		self.goal = [1,1,1] #[0.167840578046, 0.297489331432, 0.857454500127]
 		self.reward = 0.0
 
@@ -87,12 +89,12 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		for i,pub in enumerate(self.pubs):
 			pub.publish(Float64(action[i]))
 
-		self.calc_reward_cupball()
+		self.reward7()
 		tests = 0
 		while not self.reached_pos(action, 0.5):
 			tests += 1
-			time.sleep(0.001)
-			if tests > 500:
+			time.sleep(0.01)
+			if tests > 75: #750ms
 				done = True
 				break
 
@@ -106,7 +108,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 
 		### check if the task is done
 		
-		if self.reward >= 10000:
+		if self.reward >= 100000:
 			done = True
 		#check self collision physics??
 
@@ -151,6 +153,9 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.cup_state = [msg.pose[i].position.x, msg.pose[i].position.y, msg.pose[i].position.z]
 		i = msg.name.index('kendama::ball')
 		self.ball_state = [msg.pose[i].position.x, msg.pose[i].position.y, msg.pose[i].position.z]
+		i = msg.name.index('jaco_on_table::jaco_8_finger_pinkie')
+		self.pinky_state = [msg.pose[i].position.x, msg.pose[i].position.y, msg.pose[i].position.z]
+
 
 	# Other CBs
 	# i = msg.name.index('jaco_on_table::jaco_8_finger_pinkie')
@@ -174,8 +179,41 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.ball_state)]
 		# print 'cup state:', self.cup_state, "\tball state:", self.ball_state, '\t rwrd:', rwrd
 		self.reward = 3/sum(rwrd)
-		# if self.reward > 1000:
-		# 	self.reward = 1000
+
+		# check if below lip of the cup
+		if self.cup_state[2] - self.ball_state[2] > 0:
+			self.reward /= 100
+
+		# check if cup has dropped
+		if self.cup_state[2] < 0.5:
+			self.reward = 0
+
+	def reward6(self):
+		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.ball_state)]
+		# print 'cup state:', self.cup_state, "\tball state:", self.ball_state, '\t rwrd:', rwrd
+		self.reward = 3/sum(rwrd)
+
+		# check if below lip of the cup
+		if self.cup_state[2] - self.ball_state[2] > 0:
+			self.reward /= 100
+
+		# check if cup has dropped
+		if self.cup_state[2] < 0.5:
+			self.reward = 0
+
+		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.pinky_state)]
+		self.reward -= (sum(rwrd)/3)
+
+	def reward7(self):
+		if self.cup_state[2] - self.ball_state[2] > 0:
+			self.reward = 0
+		else: # mse^-1 above the cup
+			rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.ball_state)]
+			self.reward = 3/sum(rwrd)
+
+		#check mse cup hand
+		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.pinky_state)]
+		self.reward -= (sum(rwrd)/3)
 
 	def set_goal(self, goal):
 		self.goal = goal

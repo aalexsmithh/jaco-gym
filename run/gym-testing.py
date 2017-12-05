@@ -47,9 +47,10 @@ def main():
 	runner = Runner(agent=agent, environment=env)
 
 	raw_input("hit enter when gazebo is loaded...")
+	print()
 	env.gym.unpause()
 	env.gym.hold_init_robot_pos([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
-	runner.run(episodes=5, max_episode_timesteps=1000, episode_finished=episode_finished)
+	runner.run(episodes=1500, max_episode_timesteps=1000, episode_finished=episode_finished)
 
 	#old-fashioned way
 	# env = gym.make('JacoArm-v0')
@@ -79,7 +80,8 @@ def main():
 	env.close()
 
 def episode_finished(r):
-	print("Finished episode {ep} after {ts} timesteps (reward: {reward})".format(ep=r.episode, ts=r.episode_timestep, reward=r.episode_rewards[-1]))
+	# print("Finished episode {ep} after {ts} timesteps (reward: {reward})".format(ep=r.episode, ts=r.episode_timestep, reward=r.episode_rewards[-1]))
+	print("{ep}, {ts}, {reward}".format(ep=r.episode, ts=r.episode_timestep, reward=r.episode_rewards[-1]))
 	train_data.append([r.episode_timestep, r.episode_rewards[-1]])
 	return True
 
