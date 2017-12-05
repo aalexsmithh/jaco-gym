@@ -6,6 +6,7 @@ import subprocess
 import time
 import numpy as np
 import math
+import signal
 
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -44,6 +45,9 @@ class JacoEnv(gazebo_env.GazeboEnv):
 
 		# state space
 		self.joint_state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+		self.ball_state = [0.0, 0.0, 0.0]
+		self.cup_state = [0.0, 0.0, 0.0]
+		self.world_state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 		self.link_states = None
 		self.state_sub = rospy.Subscriber('/jaco/joint_states', JointState, self.state_cb)
 		self.gz_states = rospy.Subscriber('/gazebo/link_states', LinkStates, self.gz_state_cb)
@@ -54,8 +58,11 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		self.max_joint_pos = np.asarray([math.pi] * 9)
 		self.min_joint_pos = np.asarray([-math.pi] * 9)
 		self.action_space = spaces.Box(low=self.min_joint_pos, high=self.max_joint_pos) #-pi to pi for each joint
-		self.observation_space = spaces.Box(low=self.min_joint_pos, high=self.max_joint_pos)
-		self.reward_range = (1000, 0)
+		
+		self.max_obs_space = np.append(self.max_joint_pos, np.asarray([np.inf] * 6))
+		self.min_obs_space = np.append(self.min_joint_pos, np.asarray([-np.inf] * 6))
+		self.observation_space = spaces.Box(low=self.min_obs_space, high=self.max_obs_space)
+		self.reward_range = (np.inf, 0)
 		self.goal = [1,1,1] #[0.167840578046, 0.297489331432, 0.857454500127]
 		self.reward = 0.0
 
@@ -80,7 +87,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		for i,pub in enumerate(self.pubs):
 			pub.publish(Float64(action[i]))
 
-		self.calc_reward()
+		self.calc_reward_cupball()
 		tests = 0
 		while not self.reached_pos(action, 0.5):
 			tests += 1
@@ -99,11 +106,11 @@ class JacoEnv(gazebo_env.GazeboEnv):
 
 		### check if the task is done
 		
-		if self.reward >= 1000:
+		if self.reward >= 10000:
 			done = True
 		#check self collision physics??
 
-		return self.joint_state, self.reward, done, {}
+		return self.get_state(), self.reward, done, {}
 
 	def _reset(self):
 		# Resets the state of the environment and returns an initial observation.
@@ -115,7 +122,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		except (rospy.ServiceException) as e:
 			print ("/gazebo/reset_simulation service call failed")
 
-		return self.joint_state
+		return self.get_state()
 
 	def _pause(self, msg):
 		programPause = raw_input(str(msg))
@@ -124,16 +131,36 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		# Not sure if this is necessary to define as we are using gazebo for rendering.
 		pass
 
+	def _close(self):
+		signal.signal(signal.SIGINT, self.shutdown)
+		super(JacoEnv, self)._close()
+
 	def _seed(self, seed=None):
 		self.np_random, seed = seeding.np_random(seed)
 		return [seed]
 
+	def shutdown(self, signum, frame):
+		rospy.signal_shutdown("kill spawner")
+
 	def state_cb(self, msg):
-		self.joint_state = msg.position
+		for i, pos in enumerate(msg.position):
+			self.joint_state[i] = pos
 
 	def gz_state_cb(self, msg):
-		i = msg.name.index('jaco_on_table::jaco_8_finger_pinkie')
-		self.link_states = [msg.pose[i].position.x, msg.pose[i].position.y, msg.pose[i].position.z]
+		i = msg.name.index('kendama::base_link')
+		self.cup_state = [msg.pose[i].position.x, msg.pose[i].position.y, msg.pose[i].position.z]
+		i = msg.name.index('kendama::ball')
+		self.ball_state = [msg.pose[i].position.x, msg.pose[i].position.y, msg.pose[i].position.z]
+
+	# Other CBs
+	# i = msg.name.index('jaco_on_table::jaco_8_finger_pinkie')
+	# self.ball_state = [msg.pose[i].position.x, msg.pose[i].position.y, msg.pose[i].position.z]
+
+	def get_state(self):
+		state = list(self.joint_state)
+		state.extend(self.cup_state)
+		state.extend(self.ball_state)
+		return state
 
 	def calc_reward(self):
 		if self.goal is not None:
@@ -142,6 +169,13 @@ class JacoEnv(gazebo_env.GazeboEnv):
 			self.reward = 1/(sum(rwrd)/3)
 			if self.reward > 1000:
 				self.reward = 1000
+
+	def calc_reward_cupball(self):
+		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.ball_state)]
+		# print 'cup state:', self.cup_state, "\tball state:", self.ball_state, '\t rwrd:', rwrd
+		self.reward = 3/sum(rwrd)
+		# if self.reward > 1000:
+		# 	self.reward = 1000
 
 	def set_goal(self, goal):
 		self.goal = goal

@@ -49,7 +49,7 @@ def main():
 	raw_input("hit enter when gazebo is loaded...")
 	env.gym.unpause()
 	env.gym.hold_init_robot_pos([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
-	runner.run(episodes=50, max_episode_timesteps=100, episode_finished=episode_finished)
+	runner.run(episodes=5, max_episode_timesteps=1000, episode_finished=episode_finished)
 
 	#old-fashioned way
 	# env = gym.make('JacoArm-v0')
