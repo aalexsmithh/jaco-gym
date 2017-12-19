@@ -1,3 +1,10 @@
+'''
+This file is from gym_gazebo (https://github.com/erlerobot/gym-gazebo), a repo developed by Erle Robotics.
+It is released under GPLv3.
+It has been moved into this project to simplify the organization of the project.
+'''
+
+
 import gym
 import rospy
 import roslaunch
