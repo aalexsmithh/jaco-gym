@@ -7,6 +7,7 @@ import time
 import numpy as np
 import math
 import signal
+from jaco_gym.envs import rewards as r
 
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -89,7 +90,7 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		for i,pub in enumerate(self.pubs):
 			pub.publish(Float64(action[i]))
 
-		self.reward7()
+		r.reward7(self)
 		tests = 0
 		while not self.reached_pos(action, 0.5):
 			tests += 1
@@ -166,54 +167,6 @@ class JacoEnv(gazebo_env.GazeboEnv):
 		state.extend(self.cup_state)
 		state.extend(self.ball_state)
 		return state
-
-	def calc_reward(self):
-		if self.goal is not None:
-			# MSE of link_state from goal
-			rwrd = [(x-y)**2 for x,y in zip(self.goal, self.link_states)]
-			self.reward = 1/(sum(rwrd)/3)
-			if self.reward > 1000:
-				self.reward = 1000
-
-	def calc_reward_cupball(self):
-		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.ball_state)]
-		# print 'cup state:', self.cup_state, "\tball state:", self.ball_state, '\t rwrd:', rwrd
-		self.reward = 3/sum(rwrd)
-
-		# check if below lip of the cup
-		if self.cup_state[2] - self.ball_state[2] > 0:
-			self.reward /= 100
-
-		# check if cup has dropped
-		if self.cup_state[2] < 0.5:
-			self.reward = 0
-
-	def reward6(self):
-		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.ball_state)]
-		# print 'cup state:', self.cup_state, "\tball state:", self.ball_state, '\t rwrd:', rwrd
-		self.reward = 3/sum(rwrd)
-
-		# check if below lip of the cup
-		if self.cup_state[2] - self.ball_state[2] > 0:
-			self.reward /= 100
-
-		# check if cup has dropped
-		if self.cup_state[2] < 0.5:
-			self.reward = 0
-
-		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.pinky_state)]
-		self.reward -= (sum(rwrd)/3)
-
-	def reward7(self):
-		if self.cup_state[2] - self.ball_state[2] > 0:
-			self.reward = 0
-		else: # mse^-1 above the cup
-			rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.ball_state)]
-			self.reward = 3/sum(rwrd)
-
-		#check mse cup hand
-		rwrd = [(x-y)**2 for x,y in zip(self.cup_state, self.pinky_state)]
-		self.reward -= (sum(rwrd)/3)
 
 	def set_goal(self, goal):
 		self.goal = goal
