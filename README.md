@@ -1,7 +1,12 @@
 jaco-gym
 ========
 
-This is a WIP package that will allow the Jaco arm Gazebo simulation to be incorporated into OpenAI Gym.
+This is a WIP package that will allow the Jaco arm Gazebo simulation to be incorporated into OpenAI Gym. 
+
+The video below shows an example of a TRPO agent playing cup-and-ball after about 5000 episodes.
+
+![Jaco Arm playing cup-and-ball](https://media.giphy.com/media/kKHA2FnzEG0iuQC30g/giphy.gif)
+
 
 Running
 -------
