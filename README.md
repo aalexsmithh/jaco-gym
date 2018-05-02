@@ -5,7 +5,7 @@ This is a WIP package that will allow the Jaco arm Gazebo simulation to be incor
 
 The video below shows an example of a TRPO agent playing cup-and-ball after about 5000 episodes.
 
-[Jaco Arm playing cup-and-ball](https://i.imgur.com/trxbWoX.gifv)
+![Jaco Arm playing cup-and-ball](https://i.imgur.com/trxbWoX.gifv)
 
 
 Running
